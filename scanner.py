@@ -2,7 +2,6 @@ import os
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-import solver
 
 template_numbers = []
 draw = False
@@ -117,7 +116,7 @@ def recognize_set(pos_image):
     return sudoku
 
 
-def recognize(char, manual = True):
+def recognize(char):
     scale = 70 / char.shape[0]
     width = int(scale * char.shape[1])
     char = cv2.resize(char, dsize=(width, 70), interpolation=cv2.INTER_LINEAR)
@@ -130,8 +129,6 @@ def recognize(char, manual = True):
     _, thres = cv2.threshold(char, 127, 255, cv2.THRESH_BINARY_INV)
     erode = cv2.morphologyEx(thres, cv2.MORPH_ERODE, np.ones((5, 5)))
     c[0:70, 0:char.shape[1]] = erode
-    plt.imshow(c, cmap='gray')
-    plt.show()
     distance = 9999999
     label = ""
     for check in template_numbers:
@@ -146,4 +143,4 @@ def recognize(char, manual = True):
 
 
 result = recognize_set(numbers)
-print(solver.solveSudoku(result))
+print(result)
