@@ -1,6 +1,6 @@
 import time
 
-from function import _, loop_basic_rule, loop_algorithm, check_box_eliminate_others
+from function import loop_basic_rule, loop_algorithm, check_box_eliminate_others
 import copy
 
 

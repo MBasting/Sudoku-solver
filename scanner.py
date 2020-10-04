@@ -2,6 +2,7 @@ import os
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
+import main
 
 template_numbers = []
 draw = False
@@ -112,11 +113,17 @@ def recognize_set(pos_image):
     sudoku = np.zeros(shape=(9, 9))
     for (position, image) in pos_image:
         label = recognize(image)
-        sudoku[position[0], position[1]] = label
+        if label is not None:
+            sudoku[position[0], position[1]] = label
     return sudoku
 
 
 def recognize(char):
+    height, width = char.shape
+    cutoff_h = int(height/10)
+    cutoff_w = int(width/10)
+    char = char[cutoff_h:height-cutoff_h, cutoff_w:width-cutoff_w].copy()
+
     scale = 70 / char.shape[0]
     width = int(scale * char.shape[1])
     char = cv2.resize(char, dsize=(width, 70), interpolation=cv2.INTER_LINEAR)
@@ -137,6 +144,8 @@ def recognize(char):
         if dist < distance:
             distance = dist
             label = check[0]  # Zero index of check contains the file name which in our case is the number.
+    plt.imshow(c)
+    plt.show()
     if distance > 300000:
         print(label, distance)
     return label
@@ -144,3 +153,4 @@ def recognize(char):
 
 result = recognize_set(numbers)
 print(result)
+# print(main.solve(result.tolist()))
