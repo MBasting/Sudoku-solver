@@ -119,5 +119,5 @@ difficult =   [[0, 0, 0, 0, 0, 0, 3, 0, 7],
               [0, 0, 1, 9, 0, 0, 0, 7, 6],
               [0, 0, 0, 0, 0, 0, 0, 3, 0],
               [0, 0, 7, 6, 0, 0, 0, 0, 5]]
-solveSudoku(testsudoku)
+# solveSudoku(testsudoku)
 
