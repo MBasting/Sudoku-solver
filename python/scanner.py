@@ -10,7 +10,7 @@ draw = False
 
 
 def load_numbers():
-    for (dirpath, dirnames, filenames) in os.walk("../numbers"):
+    for (dirpath, dirnames, filenames) in os.walk("../Resources/numbers"):
         for file in filenames:
             img = cv2.imread("../numbers/" + file)
             img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -148,6 +148,6 @@ def scan(path):
     return recognize_set(numbers)
 
 
-path = "../test_images/test_1.jpg"
+path = "../Resources/test_images/test_1.jpg"
 result = scan(path);
 print(solve(result.tolist()))
