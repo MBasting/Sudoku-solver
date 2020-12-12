@@ -6,6 +6,7 @@ import copy
 
 def solve(sudoku):
     start = time.time()
+    print(sudoku)
     # Input excel file path and sheet name
     # Copy existing information from question
     solution = copy.deepcopy(sudoku)
@@ -43,3 +44,4 @@ def solve(sudoku):
     else:
         print("Solution not yet found")
         return False
+

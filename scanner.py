@@ -110,11 +110,11 @@ for cnt in contours:
 
 
 def recognize_set(pos_image):
-    sudoku = np.zeros(shape=(9, 9))
+    sudoku = np.zeros(shape=(9, 9), dtype=int)
     for (position, image) in pos_image:
         label = recognize(image)
         if label is not None:
-            sudoku[position[0], position[1]] = label
+            sudoku[position[0], position[1]] = int(label)
     return sudoku
 
 
@@ -144,13 +144,10 @@ def recognize(char):
         if dist < distance:
             distance = dist
             label = check[0]  # Zero index of check contains the file name which in our case is the number.
-    plt.imshow(c)
-    plt.show()
     if distance > 300000:
         print(label, distance)
     return label
 
 
 result = recognize_set(numbers)
-print(result)
-# print(main.solve(result.tolist()))
+print(main.solve(result.tolist()))
