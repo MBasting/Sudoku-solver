@@ -2,16 +2,17 @@ import os
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-import main
+from python.main_solve import solve
+import python.main_solve
 
 template_numbers = []
 draw = False
 
 
 def load_numbers():
-    for (dirpath, dirnames, filenames) in os.walk("numbers"):
+    for (dirpath, dirnames, filenames) in os.walk("../numbers"):
         for file in filenames:
-            img = cv2.imread("numbers/" + file)
+            img = cv2.imread("../numbers/" + file)
             img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             img = cv2.bitwise_not(img)
             sum = np.sum(img)
@@ -29,15 +30,9 @@ def prepare(image, width=1080):
     return gray, new_image
 
 
-load_numbers()
-path = "test_images/test_1.jpg"
-img = cv2.imread(path)
-gray_image, resized = prepare(img)
-
-
 def isolatenumbers(image, resized):
     kernel = np.ones((8, 8), np.float32) / 64
-    dst = cv2.filter2D(gray_image, -1, kernel)
+    dst = cv2.filter2D(image, -1, kernel)
     blurred_image = cv2.GaussianBlur(dst, (5, 5), 0)
 
     edged_image = cv2.Canny(blurred_image, 0, 50)
@@ -90,25 +85,6 @@ def isolatenumbers(image, resized):
     return numbers, roi_gray, cont
 
 
-num, ROI, contours = isolatenumbers(gray_image, resized)
-if draw:
-    cv2.drawContours(ROI, contours, -1, (0, 255, 0), 3)
-    plt.imshow(ROI, cmap='gray')
-    plt.show()
-
-temp = []
-numbers = []
-for cnt in contours:
-    x, y, w, h = cv2.boundingRect(cnt)
-    temp = ROI[y:y + h, x:x + w]
-    pos = (np.round((y + 0.5 * h) / (ROI.shape[0] / 10)) - 1, np.round((x + 0.5 * w) / (ROI.shape[1] / 10)) - 1)
-    pos = (int(pos[0]), int(pos[1]))
-    numbers.append((pos, temp))
-    if draw:
-        plt.imshow(temp, cmap='gray')
-        plt.show()
-
-
 def recognize_set(pos_image):
     sudoku = np.zeros(shape=(9, 9), dtype=int)
     for (position, image) in pos_image:
@@ -120,9 +96,9 @@ def recognize_set(pos_image):
 
 def recognize(char):
     height, width = char.shape
-    cutoff_h = int(height/10)
-    cutoff_w = int(width/10)
-    char = char[cutoff_h:height-cutoff_h, cutoff_w:width-cutoff_w].copy()
+    cutoff_h = int(height / 10)
+    cutoff_w = int(width / 10)
+    char = char[cutoff_h:height - cutoff_h, cutoff_w:width - cutoff_w].copy()
 
     scale = 70 / char.shape[0]
     width = int(scale * char.shape[1])
@@ -148,6 +124,30 @@ def recognize(char):
         print(label, distance)
     return label
 
+def scan(path):
+    print("starting")
+    load_numbers()
+    img = cv2.imread(path)
+    gray_image, resized = prepare(img)
 
-result = recognize_set(numbers)
-print(main.solve(result.tolist()))
+    num, ROI, contours = isolatenumbers(gray_image, resized)
+    if draw:
+        cv2.drawContours(ROI, contours, -1, (0, 255, 0), 3)
+        plt.imshow(ROI, cmap='gray')
+        plt.show()
+    numbers = []
+    for cnt in contours:
+        x, y, w, h = cv2.boundingRect(cnt)
+        temp = ROI[y:y + h, x:x + w]
+        pos = (np.round((y + 0.5 * h) / (ROI.shape[0] / 10)) - 1, np.round((x + 0.5 * w) / (ROI.shape[1] / 10)) - 1)
+        pos = (int(pos[0]), int(pos[1]))
+        numbers.append((pos, temp))
+        if draw:
+            plt.imshow(temp, cmap='gray')
+            plt.show()
+    return recognize_set(numbers)
+
+
+path = "../test_images/test_1.jpg"
+result = scan(path);
+print(solve(result.tolist()))

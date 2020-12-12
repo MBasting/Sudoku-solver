@@ -1,6 +1,6 @@
 import time
 
-from function import loop_basic_rule, loop_algorithm, check_box_eliminate_others
+from python.function import loop_basic_rule, loop_algorithm, check_box_eliminate_others
 import copy
 
 
@@ -44,4 +44,3 @@ def solve(sudoku):
     else:
         print("Solution not yet found")
         return False
-
