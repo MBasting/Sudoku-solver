@@ -11,6 +11,10 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.opencv.core.CvType.CV_32F;
 
 public class Main {
     static{ System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
@@ -18,7 +22,8 @@ public class Main {
     public static void main(String[] args) throws IOException {
         System.out.println("Welcome to OpenCV " + Core.VERSION);
 //        TNumber[] template_numbers = getNumbers();
-        String result = scanImage("Resources/test_images/test_1.jpg");
+        isolatenumbers(prepare(Imgcodecs.imread("Resources/test_images/test_1.jpg")));
+//        String result = scanImage("Resources/test_images/test_1.jpg");
     }
 
     public static TNumber[] getNumbers()  {
@@ -59,6 +64,23 @@ public class Main {
         return resizeimage;
     }
 
+    public static int isolatenumbers(Mat mat) {
+        Size s = new Size(8, 8);
+        Imgproc.blur(mat, mat, s);
+        Mat blur = new Mat();
+        Imgproc.GaussianBlur(mat, blur, new Size(5,5),0);
+        Mat edged = new Mat();
+
+        Imgproc.Canny(blur, edged, 0, 50);
+        Imgproc.dilate(edged, edged, Mat.ones(3, 3, CV_32F));
+        showImage(edged);
+        List<MatOfPoint> contours = new ArrayList<>();
+        Mat hierarchy = new Mat();
+        Imgproc.findContours(edged, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
+
+        return 0;
+    }
+
     public String solveSudoku(String sudoku) {
         return "";
     }
@@ -66,14 +88,6 @@ public class Main {
     public static String scanImage(String file) {
 
         Mat img = Imgcodecs.imread(file);
-//        int rows = img.rows();
-//        int columns = img.cols();
-//        int width = 1080;
-//        int height = columns / (rows/ width);
-//        Size newsize = new Size(1080, height);
-//        Mat resizeimage = new Mat();
-//        Imgproc.resize(img, resizeimage, newsize, 0, 0, Imgproc.INTER_AREA);
-
         showImage(prepare(img));
         System.out.println("Image Loaded");
         return "";
