@@ -1,14 +1,16 @@
 package com.solver;
 
+import org.opencv.core.Mat;
+
 import java.io.File;
 
 public class TNumber {
-    String path;
+    Mat img;
     int number;
     int sum;
 
-    public TNumber(String path, int n, int s) {
-        this.path = path;
+    public TNumber(Mat img, int n, int s) {
+        this.img = img;
         this.number = n;
         this.sum = s;
     }

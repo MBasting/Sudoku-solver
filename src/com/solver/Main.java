@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import static org.opencv.core.CvType.CV_32F;
+import static org.opencv.core.CvType.*;
 
 public class Main {
     private static TNumber[] numbers;
@@ -27,7 +27,9 @@ public class Main {
     public static void main(String[] args) throws IOException {
         System.out.println("Welcome to OpenCV " + Core.VERSION);
 //        TNumber[] template_numbers = getNumbers();
-        isolatenumbers(prepare(Imgcodecs.imread("Resources/test_images/test_1.jpg")));
+
+        int[][] img = scan("Resources/test_images/test_7.jpg");
+        System.out.println(Arrays.deepToString(img));
 //        String result = scanImage("Resources/test_images/test_1.jpg");
     }
 
@@ -48,8 +50,7 @@ public class Main {
                     Core.bitwise_not(img, img);
                     Scalar sum = Core.sumElems(img);
                     int s = (int) sum.val[0];
-                    tNumber[i] = new TNumber(p, name, s);
-                    showImage(img);
+                    tNumber[i] = new TNumber(img, name, s);
                     System.out.println("Path: " + p + "  Name: " + name + "  sum: " + s);
                 }
             }
@@ -126,7 +127,6 @@ public class Main {
      * @return Array of region of interests of the number and the contours
      */
     public static List<loc_mat> isolatenumbers(Mat image_roi) {
-
         Mat thresh = new Mat();
         Imgproc.threshold(image_roi, thresh, 140, 255, Imgproc.THRESH_BINARY);
         List<MatOfPoint> contours1 = new ArrayList<>();
@@ -141,8 +141,8 @@ public class Main {
             double parent = hierarchy1.get(0, i)[3];
             if (parent > 2 && temprec.width > image_roi.size().width / 40 && temprec.height > image_roi.size().height / 17) {
                 Mat numb_temp = image_roi.submat(temprec);
-                int posx = (int) (temprec.x + 0.5*temprec.width / (image_roi.size().width / 10)) - 1;
-                int posy = (int) (temprec.y + 0.5*temprec.height / (image_roi.size().height / 10)) - 1;
+                int posx = (int) ((temprec.x + 0.8*temprec.width) / (image_roi.size().width / 9));
+                int posy = (int) ((temprec.y + 0.8*temprec.height) / (image_roi.size().height / 9));
                 loc_mat temp = new loc_mat(posx, posy, numb_temp);
                 numbers.add(temp);
                 size++;
@@ -167,14 +167,27 @@ public class Main {
 
 
     public static int recognize(Mat num) {
-        int height = (int) num.size().height;
-        int width = (int) num.size().width;
-        int cutoff_h = height / 10;
-        int cutoff_w = width / 10;
+        Mat thresh = new Mat(num.size(), CV_8U);
+        Imgproc.threshold(num, thresh, 140, 255, Imgproc.THRESH_BINARY_INV);
+        int width = (int) (((double) 70 / num.size().height) * num.size().width);
+        if (width > 100) return 0;
+        Imgproc.resize(thresh, thresh, new Size(60, 70));
+        Imgproc.morphologyEx(thresh, thresh, Imgproc.MORPH_ERODE, Mat.ones(5,5, CV_64F));
 
-
-
-        return 0;
+        int distance = Integer.MAX_VALUE;
+        int label = 0;
+        for (TNumber n : numbers) {
+            int number = n.number;
+            Mat res = new Mat();
+            Core.absdiff(n.img, thresh, res);
+            Scalar sum = Core.sumElems(res);
+            int s = (int) sum.val[0];
+            if (s < distance) {
+                label = number;
+                distance = s;
+            }
+        }
+        return label;
     }
 
     public static int[][] scan(String path) {
@@ -184,6 +197,7 @@ public class Main {
         // Extract the numbers from the taken picture
         Mat sudoku = isolateSudoku(gray);
         List<loc_mat> loc_mats = isolatenumbers(sudoku);
+
         return recognize_set(loc_mats);
     }
 
