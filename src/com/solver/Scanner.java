@@ -17,7 +17,7 @@ import java.util.List;
 
 import static org.opencv.core.CvType.*;
 
-public class Sudoku_Scanner {
+public class Scanner {
     // Array with saved numbers used for recognition.
     private static TNumber[] numbers;
 
@@ -28,7 +28,7 @@ public class Sudoku_Scanner {
         System.out.println("Welcome to OpenCV " + Core.VERSION);
 //        TNumber[] template_numbers = getNumbers();
 
-        int[][] img = scan("Resources/test_images/test_7.jpg");
+        int[][] img = scan("Resources/test_images/test_2.jpg");
         System.out.println(Arrays.deepToString(img));
 //        String result = scanImage("Resources/test_images/test_1.jpg");
     }
@@ -149,8 +149,10 @@ public class Sudoku_Scanner {
             double parent = hierarchy1.get(0, i)[3];
             if (parent > 2 && temprec.width > image_roi.size().width / 40 && temprec.height > image_roi.size().height / 17) {
                 Mat numb_temp = image_roi.submat(temprec);
-                int posx = (int) ((temprec.x + 0.8*temprec.width) / (image_roi.size().width / 9));
-                int posy = (int) ((temprec.y + 0.8*temprec.height) / (image_roi.size().height / 9));
+
+                int posx = (int) ((temprec.x + 0.7*temprec.width) / (image_roi.size().width / 9));
+                int posy = (int) ((temprec.y + 0.7*temprec.height) / (image_roi.size().height / 9));
+
                 Isolated_Number temp = new Isolated_Number(posx, posy, numb_temp);
                 numbers.add(temp);
                 size++;
@@ -194,7 +196,8 @@ public class Sudoku_Scanner {
         int width = (int) (((double) 70 / num.size().height) * num.size().width);
         if (width > 100) return 0;
         Imgproc.resize(thresh, thresh, new Size(60, 70));
-        Imgproc.morphologyEx(thresh, thresh, Imgproc.MORPH_ERODE, Mat.ones(5,5, CV_64F));
+        Imgproc.morphologyEx(thresh, thresh, Imgproc.MORPH_OPEN, Mat.ones(3,3, CV_8U));
+        Imgproc.morphologyEx(thresh, thresh, Imgproc.MORPH_ERODE, Mat.ones(3,3, CV_8U));
 
         int distance = Integer.MAX_VALUE;
         int label = 0;
@@ -209,6 +212,9 @@ public class Sudoku_Scanner {
                 distance = s;
             }
         }
+        if (label == 6) {
+            showImage(thresh);
+        }
         return label;
     }
 
@@ -221,7 +227,6 @@ public class Sudoku_Scanner {
         Mat img = Imgcodecs.imread(path);
         numbers = getNumbers();
         prepare(img);
-        showImage(img);
         // Extract the numbers from the taken picture
         Mat sudoku = isolateSudoku(img);
         List<Isolated_Number> Isolated_Numbers = isolatenumbers(sudoku);
