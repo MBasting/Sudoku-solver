@@ -11,17 +11,17 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Random;
 
 import static org.opencv.core.CvType.*;
 
-public class Main {
+public class Sudoku_Scanner {
+    // Array with saved numbers used for recognition.
     private static TNumber[] numbers;
 
+    // Loading of CV2 library
     static{ System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
 
     public static void main(String[] args) throws IOException {
@@ -33,6 +33,11 @@ public class Main {
 //        String result = scanImage("Resources/test_images/test_1.jpg");
     }
 
+    /** Puts all reference images needed for later recognition in an array
+     *  Every element consists of an image of the number, corresponding number and amount of pixels
+     *
+     * @return Array of Elements(image as Mat, number, amount of pixels)
+     */
     public static TNumber[] getNumbers()  {
         File path = new File("Resources/numbers");
         TNumber[] tNumber = new TNumber[9];
@@ -58,17 +63,20 @@ public class Main {
         return tNumber;
     }
 
-    public static Mat prepare(Mat img) {
+
+    /** Prepares the image for recognition by converting to gray scaling and rescaling (speed up)
+     *
+     * @param img Matrix of image to be resized
+     */
+    public static void prepare(Mat img) {
         int rows = img.rows();
         int columns = img.cols();
         int width = 1080;
         int height = (int) (columns / ((double)rows/ width));
         System.out.println("height: " + height + "  width" + width);
         Size newsize = new Size(width, height);
-        Mat resizeimage = new Mat();
-        Imgproc.resize(img, resizeimage, newsize, 0, 0, Imgproc.INTER_AREA);
-        Imgproc.cvtColor(resizeimage, resizeimage, Imgproc.COLOR_BGR2GRAY);
-        return resizeimage;
+        Imgproc.resize(img, img, newsize, 0, 0, Imgproc.INTER_AREA);
+        Imgproc.cvtColor(img, img, Imgproc.COLOR_BGR2GRAY);
     }
 
 
@@ -126,12 +134,12 @@ public class Main {
      * @param image_roi Matrix of sudoku
      * @return Array of region of interests of the number and the contours
      */
-    public static List<loc_mat> isolatenumbers(Mat image_roi) {
+    public static List<Isolated_Number> isolatenumbers(Mat image_roi) {
         Mat thresh = new Mat();
         Imgproc.threshold(image_roi, thresh, 140, 255, Imgproc.THRESH_BINARY);
         List<MatOfPoint> contours1 = new ArrayList<>();
         Mat hierarchy1 = new Mat();
-        List<loc_mat> numbers = new ArrayList<>();
+        List<Isolated_Number> numbers = new ArrayList<>();
         int size = 0;
         Imgproc.findContours(thresh, contours1, hierarchy1, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
         // For each contour we have found in the image check its dimensions
@@ -143,7 +151,7 @@ public class Main {
                 Mat numb_temp = image_roi.submat(temprec);
                 int posx = (int) ((temprec.x + 0.8*temprec.width) / (image_roi.size().width / 9));
                 int posy = (int) ((temprec.y + 0.8*temprec.height) / (image_roi.size().height / 9));
-                loc_mat temp = new loc_mat(posx, posy, numb_temp);
+                Isolated_Number temp = new Isolated_Number(posx, posy, numb_temp);
                 numbers.add(temp);
                 size++;
             }
@@ -152,13 +160,19 @@ public class Main {
     }
 
 
-    public static int[][] recognize_set(List<loc_mat> loc_mats) {
+    /** This function extracts all numbers given as Isolated_Number and puts them in the correct spot.
+     *
+     * @param Isolated_Numbers List of Isolated_Numbers,
+     *                         Each Isolated_Number consists of its position in the sudoku and the ROI.
+     * @return Recognized Sudoku as double int array.
+     */
+    public static int[][] recognize_set(List<Isolated_Number> Isolated_Numbers) {
         int[][] sudoku = new int[9][9];
         // Prepare the array by setting all values to zero.
         for (int[] ints : sudoku) {
             Arrays.fill(ints, 0);
         }
-        for (loc_mat numb: loc_mats) {
+        for (Isolated_Number numb: Isolated_Numbers) {
             int label = recognize(numb.roi);
             sudoku[numb.y][numb.x] = label;
         }
@@ -166,7 +180,15 @@ public class Main {
     }
 
 
+    /** Recognizes a number given as Mat. Done by the absolute difference.
+     *
+     * @param num image of the separate number as Mat.
+     * @return calculate value of the num as int, zero if Mat was not a valid size.
+     */
     public static int recognize(Mat num) {
+        if (num == null) {
+            return 0;
+        }
         Mat thresh = new Mat(num.size(), CV_8U);
         Imgproc.threshold(num, thresh, 140, 255, Imgproc.THRESH_BINARY_INV);
         int width = (int) (((double) 70 / num.size().height) * num.size().width);
@@ -190,22 +212,28 @@ public class Main {
         return label;
     }
 
+    /** Combines all previously defined functions. Reads the image and returns sudoku.
+     *
+     * @param path Path to the to be recognized sudoku (doesn't have to be isolated sudoku);
+     * @return Sudoku as double int array.
+     */
     public static int[][] scan(String path) {
         Mat img = Imgcodecs.imread(path);
         numbers = getNumbers();
-        Mat gray = prepare(img);
+        prepare(img);
+        showImage(img);
         // Extract the numbers from the taken picture
-        Mat sudoku = isolateSudoku(gray);
-        List<loc_mat> loc_mats = isolatenumbers(sudoku);
+        Mat sudoku = isolateSudoku(img);
+        List<Isolated_Number> Isolated_Numbers = isolatenumbers(sudoku);
 
-        return recognize_set(loc_mats);
-    }
-
-    public String solveSudoku(String sudoku) {
-        return "";
+        return recognize_set(Isolated_Numbers);
     }
 
 
+    /** Debug function
+     *
+     * @param img Mat to be displayed.
+     */
     public static void showImage(Mat img) {
         try {
             MatOfByte mat = new MatOfByte();
