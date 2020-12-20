@@ -30,6 +30,9 @@ public class Scanner {
 
         int[][] img = scan("Resources/test_images/test_2.jpg");
         System.out.println(Arrays.deepToString(img));
+        int[][] sol = Solver.solve(img);
+        System.out.println(Arrays.deepToString(sol));
+
 //        String result = scanImage("Resources/test_images/test_1.jpg");
     }
 
@@ -197,7 +200,7 @@ public class Scanner {
         if (width > 100) return 0;
         Imgproc.resize(thresh, thresh, new Size(60, 70));
         Imgproc.morphologyEx(thresh, thresh, Imgproc.MORPH_OPEN, Mat.ones(3,3, CV_8U));
-        Imgproc.morphologyEx(thresh, thresh, Imgproc.MORPH_ERODE, Mat.ones(3,3, CV_8U));
+        Imgproc.morphologyEx(thresh, thresh, Imgproc.MORPH_ERODE, Mat.ones(5,5, CV_8U));
 
         int distance = Integer.MAX_VALUE;
         int label = 0;
