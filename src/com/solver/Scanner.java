@@ -212,8 +212,8 @@ public class Scanner {
                 distance = s;
             }
         }
-        if (label == 6) {
-            showImage(thresh);
+        if (distance > 300000) {
+            return 0;
         }
         return label;
     }
