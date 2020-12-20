@@ -1,5 +1,4 @@
 import com.solver.Solver;
-import com.sun.source.tree.AssertTree;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -11,8 +10,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class SolverTest {
 
-    @org.junit.jupiter.api.Test
-    void solve() {
+    @Test
+    void solve0() {
         int[][] sudoku = new int[9][9];
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 9; j++) {
@@ -56,11 +55,17 @@ class SolverTest {
 
     @Test
     void solv1() throws FileNotFoundException {
-        File file = new File("Resources\\suduoku.txt");
+        File file = new File("Resources\\sudoku1.txt");
         sudoku_pair sd = getSudokufromTXT(file);
         int[][] sud = Solver.solve(sd.tobe_solved);
-        System.out.println(Arrays.deepToString(sud));
-        System.out.println(Arrays.deepToString(sd.solved));
+        assertTrue(Arrays.deepEquals(sud, sd.solved));
+    }
+
+    @Test
+    void solv2() throws FileNotFoundException {
+        File file = new File("Resources\\sudoku2.txt");
+        sudoku_pair sd = getSudokufromTXT(file);
+        int[][] sud = Solver.solve(sd.tobe_solved);
         assertTrue(Arrays.deepEquals(sud, sd.solved));
     }
 
