@@ -102,9 +102,9 @@ public class Scanner {
         List<MatOfPoint> contours = new ArrayList<>();
         Mat hierarchy = new Mat();
         Imgproc.findContours(edged, contours, hierarchy, Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE);
-        int save = 0;
         int index = 0;
         int nr_of_sudokus = 0;
+        List<Integer> possibile = new ArrayList<>();
         // The first objective is to find the sudoku
         // We do this by finding the contour that satisfies a certain size and is also square
         for (MatOfPoint p : contours) {
@@ -113,8 +113,8 @@ public class Scanner {
             Rect temprec = Imgproc.boundingRect(new MatOfPoint(temp.toArray()));
             double ratio = (double) temprec.width / temprec.height;
             // Add contour if certain height and square
-            if (temprec.height > 0.4 * gray.size().height && (int) Math.floor(ratio) == 1) {
-                save = index;
+            if (temprec.height > 0.3 * gray.size().height && (int) Math.floor(ratio) == 1) {
+                possibile.add(index);
                 nr_of_sudokus++;
             }
             index++;
@@ -123,6 +123,16 @@ public class Scanner {
         if (nr_of_sudokus == 0) {
             System.out.println("Not enough or too much sudokus!");
             return null;
+        }
+        int save = 0;
+        int max_width = 0;
+        for (int a : possibile) {
+            MatOfPoint temp = contours.get(a);
+            Rect rect = Imgproc.boundingRect(new MatOfPoint(temp.toArray()));
+            if (rect.width > max_width) {
+                max_width = rect.width;
+                save = a;
+            }
         }
         System.out.println("Finished with one sudoku");
         MatOfPoint sud = contours.get(save);
