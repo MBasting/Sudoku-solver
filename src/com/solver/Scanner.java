@@ -72,7 +72,7 @@ public class Scanner {
         int rows = img.rows();
         int columns = img.cols();
         int width = 1080;
-        int height = (int) (columns / ((double)rows/ width));
+        int height = (int) (rows / ((double)columns/ width));
         System.out.println("height: " + height + "  width" + width);
         Size newsize = new Size(width, height);
         Imgproc.resize(img, img, newsize, 0, 0, Imgproc.INTER_AREA);
@@ -117,7 +117,7 @@ public class Scanner {
             index++;
         }
 
-        if (nr_of_sudokus != 1) {
+        if (nr_of_sudokus == 0) {
             System.out.println("Not enough or too much sudokus!");
             return null;
         }
