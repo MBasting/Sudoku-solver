@@ -148,6 +148,6 @@ def scan(path):
     return recognize_set(numbers)
 
 
-path = "../Resources/test_images/test_1.jpg"
+path = "../Resources/training_images/test_1.jpg"
 result = scan(path);
 print(solve(result.tolist()))
